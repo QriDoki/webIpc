@@ -1,5 +1,3 @@
-import {IpcContext} from "../dist/IpcContext";
-
 export const DEFAULT_IPC_CONTEXT_ID = 'DEFAULT_IPC_CONTEXT_ID'
 
 export class IpcContext {
@@ -11,7 +9,7 @@ export class IpcContext {
     }
 }
 
-export class IpcRequest {
+export class WebIpcRequestInfo {
     ipcContext: IpcContext
     serviceId: string
     method: string
