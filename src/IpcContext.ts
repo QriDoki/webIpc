@@ -9,6 +9,8 @@ export class IpcContext {
     }
 }
 
+export const DEFAULT_IPC_CONTEXT = new IpcContext()
+
 export class WebIpcRequestInfo {
     ipcContext: IpcContext
     serviceId: string

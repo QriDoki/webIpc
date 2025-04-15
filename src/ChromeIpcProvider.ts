@@ -1,5 +1,5 @@
 import {IpcProvider, ProviderInfo} from "./IpcProvider";
-import {DEFAULT_IPC_CONTEXT_ID, IpcContext, WebIpcRequestInfo} from "./IpcContext";
+import {DEFAULT_IPC_CONTEXT, DEFAULT_IPC_CONTEXT_ID, IpcContext, WebIpcRequestInfo} from "./IpcContext";
 
 // { serviceId: {contextId: object} }
 const instances: Map<string, Map<string, ProviderInfo<any>>> = new Map();
@@ -16,8 +16,8 @@ function getParameterNames(func: Function) {
 function startListen() {
     console.log(startListen)
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log("receive message from ipcListener")
-        if (message.action == "WEB_IPC_INVOKE") {
+        console.log("receive message from ipcListener", {message, sender})
+        if (message.action === "WEB_IPC_INVOKE") {
             let reqInfo: WebIpcRequestInfo = message["WEB_IPC_REQUEST_INFO"]
             if (!instances.has(reqInfo.serviceId)) {
                 sendResponse({
@@ -56,7 +56,7 @@ function startListen() {
                     args[index] = sender;
                 }
             });
-            impl[reqInfo.method](...reqInfo.args).then((result: any) => {
+            impl[reqInfo.method](...args).then((result: any) => {
                 sendResponse({result});
             }).catch((error: any) => {
                 sendResponse({
@@ -69,7 +69,7 @@ function startListen() {
 }
 
 class ChromeMessageIpcProvider extends IpcProvider<IpcContext> {
-    register<T>(itfcName: string, impl: T, context: IpcContext): void {
+    register<T>(itfcName: string, impl: T, context: IpcContext = DEFAULT_IPC_CONTEXT): void {
         if (!instances.get(itfcName)) {
             instances.set(itfcName, new Map());
         }
@@ -78,6 +78,6 @@ class ChromeMessageIpcProvider extends IpcProvider<IpcContext> {
 }
 
 const chromeMessageIpcProvider = new ChromeMessageIpcProvider()
-export const register = chromeMessageIpcProvider.register
+export const chromeMessageIpcProviderRegister = chromeMessageIpcProvider.register
 
 startListen()

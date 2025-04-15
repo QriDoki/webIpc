@@ -1,4 +1,4 @@
-import {IpcContext, WebIpcRequestInfo} from "./IpcContext";
+import {DEFAULT_IPC_CONTEXT, IpcContext, WebIpcRequestInfo} from "./IpcContext";
 import {IpcInvokerFactory} from "./IpcInvokerFactory";
 
 function msg(webIpcRequestInfo: WebIpcRequestInfo): Promise<any> {
@@ -24,7 +24,7 @@ function msg(webIpcRequestInfo: WebIpcRequestInfo): Promise<any> {
 }
 
 class ChromeIpcInvokerFactory implements IpcInvokerFactory {
-    createProxy<T extends object>(interfaceName: string, ipcContext: IpcContext): T {
+    createProxy<T extends object>(interfaceName: string, ipcContext: IpcContext = DEFAULT_IPC_CONTEXT): T {
         return new Proxy({} as T, {
             get: (target, methodName: string) => {
                 return async (...args: [any]) => {
