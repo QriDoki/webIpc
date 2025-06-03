@@ -16,7 +16,7 @@ function getParameterNames(func: Function) {
 function startListen() {
     console.log(startListen)
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log("receive message from ipcListener", {message, sender})
+        console.log(`receive message from ipcListener: ${message?.WEB_IPC_REQUEST_INFO?.serviceId}`, {message, sender})
         if (message.action === "WEB_IPC_INVOKE") {
             let reqInfo: WebIpcRequestInfo = message["WEB_IPC_REQUEST_INFO"]
             if (!instances.has(reqInfo.serviceId)) {
@@ -57,7 +57,7 @@ function startListen() {
                 }
             });
             impl[reqInfo.method](...args).then((result: any) => {
-                sendResponse({result});
+                sendResponse(result);
             }).catch((error: any) => {
                 sendResponse({
                     error: `Method ${reqInfo.serviceId}.${reqInfo.method} execution failed: ${error.message}`

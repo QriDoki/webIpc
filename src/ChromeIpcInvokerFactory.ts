@@ -13,14 +13,15 @@ function msg(webIpcRequestInfo: WebIpcRequestInfo): Promise<any> {
 
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage(message, (response) => {
-            if (response.error) {
+            if(!response) {
+                reject("response from background is undefined")
+            } else if (response.error) {
                 reject(response.error)
             } else {
                 resolve(response)
             }
         });
     })
-
 }
 
 class ChromeIpcInvokerFactory implements IpcInvokerFactory {

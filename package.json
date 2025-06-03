@@ -1,6 +1,6 @@
 {
   "name": "web-ipc",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "description": "A TypeScript library for IPC communication in web applications and browser extensions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
