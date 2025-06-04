@@ -1,44 +1,54 @@
 # Web IPC
 
-一个用于 Web 应用和浏览器扩展之间进行进程间通信（IPC）的 TypeScript 库。它提供了在不同上下文之间进行类似原生方法调用的体验。
+一个用于Web应用程序再不同context之间(比如浏览器插件的content和background) 进行IPC（进程间通信）的TypeScript库。它提供了不同上下文之间类似原生的调用体验。
 
 ## 特性
-
-- 在不同上下文之间提供类似原生方法调用的体验
-- 完整的 TypeScript 支持，确保类型安全
-- 基于 Promise 的异步方法调用支持
+- 不同上下文之间类似原生的方法调用
+- 完整的TypeScript支持确保类型安全
+- 基于Promise的异步方法调用支持
 - 基于上下文的服务注册和调用
-- 简单易用的 API，调用方式与本地方法无异
 
 ## 安装
-
 ```bash
 npm install web-ipc
 ```
 
-## API 参考
-
-### IpcContext
-
+## 使用方法
+### 1. 定义接口
 ```typescript
-class IpcContext {
-  constructor(public contextId: string = "default") {}
+export interface BackgroundNotificationInterface {
+    // 必须返回Promise
+    notify(title: string, message: string): Promise<string>
 }
 ```
 
-### 服务注册
-
+### 2. 在background脚本中实现接口并注册
 ```typescript
-function register<T>(interfaceName: string, implementation: T, context: IpcContext): void
+class BackgroundNotification implements BackgroundNotificationInterface {
+    async notify(title: string, message: string): Promise<string> {
+        let notificationId = `notification-${Date.now()}`;
+        chrome.notifications.create(notificationId, {
+            type: 'basic',
+            title: title,
+            message: message
+        });
+        return notificationId;
+    }
+}
+
+import {chromeMessageIpcProviderRegister} from "web-ipc/src/ChromeIpcProvider";
+chromeMessageIpcProviderRegister("BackgroundNotification", new BackgroundNotification())
 ```
 
-### 服务调用
-
+### 3. 通过创建代理在content脚本或popup脚本中调用接口
 ```typescript
-const chromeIpcInvoker = new ChromeIpcInvokerFactory();
-const proxy = chromeIpcInvoker.createProxy<T>(interfaceName: string, context: IpcContext): T
+import {chromeIpcInvoker} from "web-ipc/src/ChromeIpcInvokerFactory";
+const backgroundNotification = chromeIpcInvoker.createProxy<BackgroundNotificationInterface>("BackgroundNotificationInterface")
+
+let notificationId = await backgroundNotification.notify("hello", "这是来自content脚本的通知")
+console.log(notificationId)
 ```
 
 ## 许可证
 
-MIT 
+MIT

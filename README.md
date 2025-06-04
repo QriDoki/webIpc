@@ -1,23 +1,20 @@
 # Web IPC
 
-A TypeScript library for IPC (Inter-Process Communication) between web applications and browser extensions. It provides a native-like calling experience between different contexts.
+A TypeScript library for IPC (Inter-Process Communication) between different contexts (e.g. chrome extension's content.js and background.js) in web. It provides a native-like calling experience between different contexts.
 
 ## Features
-
 - Native-like method invocation between different contexts
 - Full TypeScript support ensuring type safety
 - Promise-based async method call support
 - Context-based service registration and invocation
-- Simple and easy-to-use API, calling methods just like local ones
 
 ## Installation
-
 ```bash
 npm install web-ipc
 ```
 
 ## Usage
-### 1. define a interface
+### 1. define an interface
 ```typescript
 export interface BackgroundNotificationInterface {
     // must return a Promise
@@ -35,24 +32,24 @@ class BackgroundNotification implements BackgroundNotificationInterface {
             title: title,
             message: message
         });
-        return noticeId;
+        return notificationId;
     }
 }
 
 import {chromeMessageIpcProviderRegister} from "web-ipc/src/ChromeIpcProvider";
-chromeMessageIpcProviderRegister("AirlineAgentNotificationInterface", new AirlineAgentNotification())
+chromeMessageIpcProviderRegister("BackgroundNotificationInterface", new BackgroundNotification())
 ```
 
-### 3. create a proxy in content script or popup script
+### 3. call the interface in content script or popup script by creating a proxy
 ```typescript
 import {chromeIpcInvoker} from "web-ipc/src/ChromeIpcInvokerFactory";
 const backgroundNotification = chromeIpcInvoker.createProxy<BackgroundNotificationInterface>("BackgroundNotificationInterface")
 
 let notificationId = await backgroundNotification.notify("hello", "this is a notification from content script")
-
 console.log(notificationId)
 ```
 
 ## License
 
 MIT
+
