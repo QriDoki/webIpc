@@ -16,27 +16,41 @@ A TypeScript library for IPC (Inter-Process Communication) between web applicati
 npm install web-ipc
 ```
 
-## API Reference
-
-### IpcContext
-
+## Usage
+### 1. define a interface
 ```typescript
-class IpcContext {
-  constructor(public contextId: string = "default") {}
+export interface BackgroundNotificationInterface {
+    // must return a Promise
+    notify(title: string, message: string): Promise<string>
 }
 ```
 
-### Service Registration
-
+### 2. implement the interface in background script and register it
 ```typescript
-function register<T>(interfaceName: string, implementation: T, context: IpcContext): void
+class BackgroundNotification implements BackgroundNotificationInterface {
+    async notify(title: string, message: string): Promise<string> {
+        let notificationId = `notification-${Date.now()}`;
+        chrome.notifications.create(notificationId, {
+            type: 'basic',
+            title: title,
+            message: message
+        });
+        return noticeId;
+    }
+}
+
+import {chromeMessageIpcProviderRegister} from "web-ipc/src/ChromeIpcProvider";
+chromeMessageIpcProviderRegister("AirlineAgentNotificationInterface", new AirlineAgentNotification())
 ```
 
-### Service Invocation
-
+### 3. create a proxy in content script or popup script
 ```typescript
-const chromeIpcInvoker = new ChromeIpcInvokerFactory();
-const proxy = chromeIpcInvoker.createProxy<T>(interfaceName: string, context: IpcContext): T
+import {chromeIpcInvoker} from "web-ipc/src/ChromeIpcInvokerFactory";
+const backgroundNotification = chromeIpcInvoker.createProxy<BackgroundNotificationInterface>("BackgroundNotificationInterface")
+
+let notificationId = await backgroundNotification.notify("hello", "this is a notification from content script")
+
+console.log(notificationId)
 ```
 
 ## License
