@@ -36,20 +36,22 @@ class BackgroundNotification implements BackgroundNotificationInterface {
     }
 }
 
-import {chromeMessageIpcProviderRegister} from "web-ipc/src/ChromeIpcProvider";
-chromeMessageIpcProviderRegister("BackgroundNotificationInterface", new BackgroundNotification())
+import {chromeRuntimeMessageIpcProviderRegister} from "web-ipc";
+chromeRuntimeMessageIpcProviderRegister("BackgroundNotificationInterface", new BackgroundNotification())
 ```
 
 ### 3. call the interface in content script or popup script by creating a proxy
 ```typescript
-import {chromeIpcInvoker} from "web-ipc/src/ChromeIpcInvokerFactory";
-const backgroundNotification = chromeIpcInvoker.createProxy<BackgroundNotificationInterface>("BackgroundNotificationInterface")
+import {chromeRuntimeIpcInvoker} from "web-ipc";
+const backgroundNotification = chromeRuntimeIpcInvoker.createProxy<BackgroundNotificationInterface>("BackgroundNotificationInterface")
 
 let notificationId = await backgroundNotification.notify("hello", "this is a notification from content script")
 console.log(notificationId)
 ```
 
+### The examples above use `chrome.runtime` for communication
+For communication via `window.postMessage`, use `windowMessageIpcProviderRegister` and `windowMessageIpcInvoker`.
+
 ## License
 
 MIT
-

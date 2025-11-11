@@ -36,18 +36,21 @@ class BackgroundNotification implements BackgroundNotificationInterface {
     }
 }
 
-import {chromeMessageIpcProviderRegister} from "web-ipc/src/ChromeIpcProvider";
-chromeMessageIpcProviderRegister("BackgroundNotification", new BackgroundNotification())
+import {chromeRuntimeMessageIpcProviderRegister} from "web-ipc";
+chromeRuntimeMessageIpcProviderRegister("BackgroundNotification", new BackgroundNotification())
 ```
 
 ### 3. 通过创建代理在content脚本或popup脚本中调用接口
 ```typescript
-import {chromeIpcInvoker} from "web-ipc/src/ChromeIpcInvokerFactory";
-const backgroundNotification = chromeIpcInvoker.createProxy<BackgroundNotificationInterface>("BackgroundNotificationInterface")
+import {chromeRuntimeIpcInvoker} from "web-ipc";
+const backgroundNotification = chromeRuntimeIpcInvoker.createProxy<BackgroundNotificationInterface>("BackgroundNotificationInterface")
 
 let notificationId = await backgroundNotification.notify("hello", "这是来自content脚本的通知")
 console.log(notificationId)
 ```
+
+### 以上是使用`chrome.runtime`进行通信的
+如果要用`window.postMessage`的通信, 则使用`windowMessageIpcProviderRegister`和`windowMessageIpcInvoker`  
 
 ## 许可证
 
