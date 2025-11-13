@@ -10,6 +10,7 @@ const ipcProvider = new IpcProvider((handleWebIpcRequestInfo) => {
         }
         let reqInfo: WebIpcRequestInfo = message["WEB_IPC_REQUEST_INFO"]
         handleWebIpcRequestInfo(reqInfo, sendResponse, { message, sender })
+        return true
     })
 })
 

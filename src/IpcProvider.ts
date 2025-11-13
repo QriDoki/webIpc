@@ -69,7 +69,7 @@ export class IpcProvider {
         return true
     }
 
-    register<T>(itfcName: string, impl: T, context: IpcContext = DEFAULT_IPC_CONTEXT): void {
+    register = <T> (itfcName: string, impl: T, context: IpcContext = DEFAULT_IPC_CONTEXT) => {
         if (!this.startedListen) {
             this.startListen(this.handleWebIpcRequestInfo);
             this.startedListen = true
