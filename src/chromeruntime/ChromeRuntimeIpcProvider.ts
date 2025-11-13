@@ -1,7 +1,7 @@
-import {IpcProvider, ProviderInfo} from "../IpcProvider";
+import {ExeRequest, IpcProvider, ProviderInfo} from "../IpcProvider";
 import {DEFAULT_IPC_CONTEXT, DEFAULT_IPC_CONTEXT_ID, IpcContext, WebIpcRequestInfo} from "../IpcContext";
 
-const ipcProvider = new IpcProvider((handleWebIpcRequestInfo) => {
+const ipcProvider = new IpcProvider((exeRequest: ExeRequest) => {
     console.log("startListen")
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log(`receive message from ipcListener: ${message?.WEB_IPC_REQUEST_INFO?.serviceId}`, {message, sender})
@@ -9,7 +9,17 @@ const ipcProvider = new IpcProvider((handleWebIpcRequestInfo) => {
             return
         }
         let reqInfo: WebIpcRequestInfo = message["WEB_IPC_REQUEST_INFO"]
-        handleWebIpcRequestInfo(reqInfo, sendResponse, { message, sender })
+        let res = exeRequest(reqInfo, { message, sender })
+        if (res) {
+            res.then((result: any) => {
+                sendResponse(result)
+            }).catch((error: any) => {
+                sendResponse({
+                    error: `Method ${reqInfo.serviceId}.${reqInfo.method} execution failed: ${error.message}`
+                });
+            });
+        }
+        return true;
     })
 })
 

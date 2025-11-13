@@ -10,26 +10,23 @@ export class ProviderInfo<T> {
     }
 }
 
-export type HandleWebIpcRequestInfo = (reqInfo: WebIpcRequestInfo, sendResponseFunc: (msg: any) => void, rawInfos: any) => boolean
+export type ExeRequest = (reqInfo: WebIpcRequestInfo, rawInfos: any) => Promise<any> | undefined
 
 export class IpcProvider {
     // { serviceId: {contextId: ProviderInfo} }
     private instances: Map<string, Map<string, ProviderInfo<any>>> = new Map();
 
-    startListen: (handleWebIpcRequestInfo: HandleWebIpcRequestInfo) => void
+    startListen: (exeRequest: ExeRequest) => void
 
     private startedListen = false;
 
-    constructor(startListener: (handleWebIpcRequestInfo: HandleWebIpcRequestInfo) => void) {
+    constructor(startListener: (handleWebIpcRequestInfo: ExeRequest) => void) {
         this.startListen = startListener;
     }
 
-    handleWebIpcRequestInfo: HandleWebIpcRequestInfo = (reqInfo: WebIpcRequestInfo, sendResponseFunc: (msg: any) => void, rawInfos: any) => {
+    exeRequest: ExeRequest = (reqInfo: WebIpcRequestInfo, rawInfos: any) => {
         if (!this.instances.has(reqInfo.serviceId)) {
-            sendResponseFunc({
-                error: `Service ${reqInfo.serviceId} not found`
-            });
-            return true;
+            return undefined;
         }
         let implMap = this.instances.get(reqInfo.serviceId)!
         let contextId = DEFAULT_IPC_CONTEXT_ID
@@ -38,17 +35,11 @@ export class IpcProvider {
         }
         let providerInfo = implMap.get(contextId)
         if (!providerInfo) {
-            sendResponseFunc({
-                error: `Context ${contextId} not found for service ${reqInfo.serviceId}`
-            });
-            return true;
+            return undefined;
         }
         let impl = providerInfo.impl
         if (typeof impl[reqInfo.method] !== 'function' || !impl[reqInfo.method].constructor.name.includes('AsyncFunction')) {
-            sendResponseFunc({
-                error: `Method ${reqInfo.serviceId}.${reqInfo.method} must be an async function`
-            });
-            return true;
+            return undefined;
         }
         let func = impl[reqInfo.method]
         let definedParameters = getParameterNames(func)
@@ -59,20 +50,13 @@ export class IpcProvider {
                 args[index] = rawInfos;
             }
         });
-        impl[reqInfo.method](...args).then((result: any) => {
-            sendResponseFunc(result);
-        }).catch((error: any) => {
-            sendResponseFunc({
-                error: `Method ${reqInfo.serviceId}.${reqInfo.method} execution failed: ${error.message}`
-            });
-        });
-        return true
+        return (func.apply(impl, args) as Promise<any>)
     }
 
-    register<T>(itfcName: string, impl: T, context: IpcContext = DEFAULT_IPC_CONTEXT): void {
+    register = <T>(itfcName: string, impl: T, context: IpcContext = DEFAULT_IPC_CONTEXT): void => {
         if (!this.startedListen) {
-            this.startListen(this.handleWebIpcRequestInfo);
-            this.startedListen = true
+            this.startListen(this.exeRequest);
+            this.startedListen = true;
         }
         if (!this.instances.get(itfcName)) {
             this.instances.set(itfcName, new Map());
